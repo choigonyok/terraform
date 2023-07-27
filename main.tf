@@ -83,7 +83,6 @@ resource "aws_instance" "master_node" {
   vpc_security_group_ids = [aws_security_group.cluster_sg.id]
   subnet_id = aws_subnet.public_subnet.id
   key_name = "Choigonyok"
-  instance_state = "stopped"
 
   tags = {
     Name = "master_node"
@@ -96,7 +95,6 @@ resource "aws_instance" "worker_nodes" {
   vpc_security_group_ids = [aws_security_group.cluster_sg.id]
   subnet_id = aws_subnet.public_subnet.id
   key_name = "Choigonyok"
-  instance_state = "stopped"
 
   count = 2
 
