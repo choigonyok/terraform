@@ -16,8 +16,25 @@ resource "aws_subnet" "public_subnet" {
   tags = {
     Name : "cluster_subnet"
   }
-
+  map_public_ip_on_launch = true
   cidr_block = "10.0.1.0/24"
+}
+
+resource "aws_internet_gateway" "IGW" {
+    vpc_id =  aws_vpc.mainvpc.id
+}
+
+resource "aws_route_table" "PublicRT" {
+    vpc_id =  aws_vpc.mainvpc.id
+    route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.IGW.id
+    }
+}
+
+resource "aws_route_table_association" "PublicRTassociation" {
+    subnet_id = aws_subnet.public_subnet.id
+    route_table_id = aws_route_table.PublicRT.id
 }
 
 resource "aws_security_group" "cluster_sg" {
@@ -28,6 +45,13 @@ resource "aws_security_group" "cluster_sg" {
     protocol  = "tcp"
     from_port = 80
     to_port   = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    protocol  = "tcp"
+    from_port = 0
+    to_port   = 60000
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -53,37 +77,13 @@ resource "aws_security_group" "cluster_sg" {
   }
 }
 
-resource "aws_instance" "control_cluster" {
-  ami           = "ami-0c9c942bd7bf113a2"
-  instance_type = "t3.nano"
-  key_name = "Choigonyok"
-
-  tags = {
-    Name = "control_cluster"
-  }
-
-  connection {
-    type = "ssh"
-    user = "ubuntu"
-    private_key = file("../PEMKEY/Choigonyok.pem")
-    host = self.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo snap install aws-cli",
-      "sudo apt-get update",
-      "sudo apt-get install -y nginx",
-      "sudo systemctl start nginx",
-    ]
-  }
-}
-
 resource "aws_instance" "master_node" {
   ami           = "ami-0c9c942bd7bf113a2"
-  instance_type = "t3.nano"
+  instance_type = "t3.small"
   vpc_security_group_ids = [aws_security_group.cluster_sg.id]
   subnet_id = aws_subnet.public_subnet.id
+  key_name = "Choigonyok"
+  instance_state = "stopped"
 
   tags = {
     Name = "master_node"
@@ -92,9 +92,11 @@ resource "aws_instance" "master_node" {
 
 resource "aws_instance" "worker_nodes" {
   ami           = "ami-0c9c942bd7bf113a2"
-  instance_type = "t3.nano"
+  instance_type = "t3.small"
   vpc_security_group_ids = [aws_security_group.cluster_sg.id]
   subnet_id = aws_subnet.public_subnet.id
+  key_name = "Choigonyok"
+  instance_state = "stopped"
 
   count = 2
 
@@ -103,10 +105,14 @@ resource "aws_instance" "worker_nodes" {
   }
 }
 
-output "manager_ip" {
-  value = "${aws_security_group.cluster_sg.id}"
+output "master-ip" {
+  value = "${aws_instance.master_node.public_ip}"
 }
 
-output "ipaddr" {
-  value = "${aws_instance.control_cluster.public_ip}"
+output "worker1-ip" {
+  value = "${aws_instance.worker_nodes[0].public_ip}"
+}
+
+output "worker2-ip" {
+  value = "${aws_instance.worker_nodes[1].public_ip}"
 }
