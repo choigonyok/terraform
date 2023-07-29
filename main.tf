@@ -87,6 +87,40 @@ resource "aws_instance" "master_node" {
   tags = {
     Name = "master_node"
   }
+
+  connection {
+    type = "ssh"
+    user = "ubuntu"
+    private_key = file("../PEMKEY/Choigonyok.pem")    
+    host = self.public_ip
+  }
+
+   provisioner "remote-exec" {
+# master는 
+# nodes는 sudo scripts/install-node.sh
+
+# master에 나온 join 명령어 node에서 실행
+
+# master : vim scripts/create-user.sh
+# 들어가서
+#     useradd => usermod 변경
+#     맨위에 groupadd ubuntu? 삭제
+# result=$(sudo scripts/install-kubernetes.sh | grep -o "hello")
+# "result=$(yes | sudo scripts/install-kubernetes.sh | grep -o 'kubeadm join [^\n]*')"
+# result=$(yes | sudo scripts/install-kubernetes.sh | grep -o '^kubeadm join .*')
+# echo "$result" > ../result.txt,
+
+# vim scripts/create-user.sh
+# sudo scripts/create-user.sh
+
+# sudo kubelet ~
+
+    inline = [
+      "git clone https://github.com/wardviaene/on-prem-or-cloud-agnostic-kubernetes.git",
+      "cd on-prem-or-cloud-agnostic-kubernetes",
+      "yes | sudo scripts/install-kubernetes.sh",
+    ]
+  }
 }
 
 resource "aws_instance" "worker_nodes" {
@@ -100,6 +134,21 @@ resource "aws_instance" "worker_nodes" {
 
   tags = {
     Name = "worker_node${count.index}"
+  }
+
+  connection {
+    type = "ssh"
+    user = "ubuntu"
+    private_key = file("../PEMKEY/Choigonyok.pem")    
+    host = self.public_ip
+  }
+  
+  provisioner "remote-exec" {
+    inline = [
+      "git clone https://github.com/wardviaene/on-prem-or-cloud-agnostic-kubernetes.git",
+      "cd on-prem-or-cloud-agnostic-kubernetes",
+      "yes | sudo scripts/install-node.sh",
+    ]
   }
 }
 
