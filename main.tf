@@ -42,30 +42,9 @@ resource "aws_security_group" "cluster_sg" {
   name = "cluster_sg"
 
   ingress {
-    protocol  = "tcp"
-    from_port = 80
-    to_port   = 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 0
-    to_port   = 60000
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 443
-    to_port   = 443
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 22
-    to_port   = 22
+    from_port   = 0
+    to_port     = 0
+    protocol  = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -96,24 +75,6 @@ resource "aws_instance" "master_node" {
   }
 
    provisioner "remote-exec" {
-# master는 
-# nodes는 sudo scripts/install-node.sh
-
-# master에 나온 join 명령어 node에서 실행
-
-# master : vim scripts/create-user.sh
-# 들어가서
-#     useradd => usermod 변경
-#     맨위에 groupadd ubuntu? 삭제
-# result=$(sudo scripts/install-kubernetes.sh | grep -o "hello")
-# "result=$(yes | sudo scripts/install-kubernetes.sh | grep -o 'kubeadm join [^\n]*')"
-# result=$(yes | sudo scripts/install-kubernetes.sh | grep -o '^kubeadm join .*')
-# echo "$result" > ../result.txt,
-
-# vim scripts/create-user.sh
-# sudo scripts/create-user.sh
-
-# sudo kubelet ~
 
     inline = [
       "git clone https://github.com/wardviaene/on-prem-or-cloud-agnostic-kubernetes.git",
@@ -134,7 +95,7 @@ resource "aws_instance" "worker_nodes" {
 
   tags = {
     Name = "worker_node${count.index}"
-  }
+  }  
 
   connection {
     type = "ssh"
@@ -142,7 +103,7 @@ resource "aws_instance" "worker_nodes" {
     private_key = file("../PEMKEY/Choigonyok.pem")    
     host = self.public_ip
   }
-  
+   
   provisioner "remote-exec" {
     inline = [
       "git clone https://github.com/wardviaene/on-prem-or-cloud-agnostic-kubernetes.git",
@@ -163,3 +124,22 @@ output "worker1-ip" {
 output "worker2-ip" {
   value = "${aws_instance.worker_nodes[1].public_ip}"
 }
+
+# master는 
+# nodes는 sudo scripts/install-node.sh
+
+# master에 나온 join 명령어 node에서 실행
+
+# master : vim scripts/create-user.sh
+# 들어가서
+#     useradd => usermod 변경
+#     맨위에 groupadd ubuntu? 삭제
+# result=$(sudo scripts/install-kubernetes.sh | grep -o "hello")
+# "result=$(yes | sudo scripts/install-kubernetes.sh | grep -o 'kubeadm join [^\n]*')"
+# result=$(yes | sudo scripts/install-kubernetes.sh | grep -o '^kubeadm join .*')
+# echo "$result" > ../result.txt,
+
+# vim scripts/create-user.sh
+# sudo scripts/create-user.sh
+
+# sudo kubelet ~
