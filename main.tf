@@ -1,4 +1,3 @@
-
 provider "aws" {
   region = "ap-northeast-2"
 }
@@ -133,7 +132,7 @@ resource "aws_instance" "worker_nodes" {
   subnet_id = aws_subnet.public_subnet.id
   key_name = "Choigonyok"
 
-  count = 2
+  count = 3
 
   tags = {
     Name = "worker_node${count.index}"
@@ -197,4 +196,8 @@ output "worker1-ip" {
 
 output "worker2-ip" {
   value = "${aws_instance.worker_nodes[1].public_ip}"
+}
+
+output "worker3-ip" {
+  value = "${aws_instance.worker_nodes[2].public_ip}"
 }
