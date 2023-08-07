@@ -5,7 +5,7 @@ provider "aws" {
 resource "aws_vpc" "mainvpc" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    Name : "mainvpc"
+    Name : "ccs-vpc"
   }
 }
 
@@ -13,7 +13,7 @@ resource "aws_vpc" "mainvpc" {
 resource "aws_subnet" "public_subnet" {
   vpc_id     = aws_vpc.mainvpc.id
   tags = {
-    Name : "cluster_subnet"
+    Name : "ccs_subnet"
   }
   map_public_ip_on_launch = true
   cidr_block = "10.0.1.0/24"
@@ -38,7 +38,7 @@ resource "aws_route_table_association" "PublicRTassociation" {
 
 resource "aws_security_group" "cluster_sg" {
   vpc_id = aws_vpc.mainvpc.id
-  name = "cluster_sg"
+  name = "ccs_sg"
 
   ingress {
     from_port   = 0
@@ -55,7 +55,7 @@ resource "aws_security_group" "cluster_sg" {
   }
 }
 
-resource "aws_instance" "master_node" {
+resource "aws_instance" "ccs-master" {
   ami           = "ami-0c9c942bd7bf113a2"
   instance_type = "t3.small"
   vpc_security_group_ids = [aws_security_group.cluster_sg.id]
@@ -125,7 +125,7 @@ resource "aws_instance" "master_node" {
   }
 }
 
-resource "aws_instance" "worker_nodes" {
+resource "aws_instance" "ccs-workers" {
   ami           = "ami-0c9c942bd7bf113a2"
   instance_type = "t3.small"
   vpc_security_group_ids = [aws_security_group.cluster_sg.id]
