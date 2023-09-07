@@ -127,7 +127,7 @@ resource "aws_instance" "ccs-master" {
 
 resource "aws_instance" "ccs-workers" {
   ami           = "ami-0c9c942bd7bf113a2"
-  instance_type = "t3.small"
+  instance_type = "t3.micro"
   vpc_security_group_ids = [aws_security_group.cluster_sg.id]
   subnet_id = aws_subnet.public_subnet.id
   key_name = "Choigonyok"
@@ -187,17 +187,17 @@ provisioner "remote-exec" {
 }
 
 output "master-ip" {
-  value = "${aws_instance.master_node.public_ip}"
+  value = "${aws_instance.ccs-master.public_ip}"
 }
 
 output "worker1-ip" {
-  value = "${aws_instance.worker_nodes[0].public_ip}"
+  value = "${aws_instance.ccs-workers[0].public_ip}"
 }
 
 output "worker2-ip" {
-  value = "${aws_instance.worker_nodes[1].public_ip}"
+  value = "${aws_instance.ccs-workers[1].public_ip}"
 }
 
 output "worker3-ip" {
-  value = "${aws_instance.worker_nodes[2].public_ip}"
+  value = "${aws_instance.ccs-workers[2].public_ip}"
 }
